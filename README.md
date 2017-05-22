@@ -1,3 +1,14 @@
+## Fork
+
+This is a fork of the node-irc module that correctly handles `encoding` option of the client,
+meaning that any inbound messages would be forcefully encoded using Iconv module (e.g. `Windows-1251` -> `UTF-8`) and any outbound messages would be encoded as well (e.g. `UTF-8` -> `Windows-1251`). In the original code this feature is broken because:
+
+1. ICU autodetection provided by `node-icu-charset-detector` detects charsets wrongly (e.g. detects `ISO-8859-2` instead of `Windows-1251`);
+2. Encoding works not as expected (converts autodetected encoding into specified encoding for inbound messages, I don't know how this is even useful);
+3. Doesn't handle outbound messages at all.
+
+See diffs for details.
+
 [![Travis](https://img.shields.io/travis/martynsmith/node-irc.svg?style=flat)](https://travis-ci.org/martynsmith/node-irc)
 [![npm](https://img.shields.io/npm/v/irc.svg?style=flat)](https://www.npmjs.com/package/irc)
 [![Dependency Status](https://img.shields.io/david/martynsmith/node-irc.svg?style=flat)](https://david-dm.org/martynsmith/node-irc#info=Dependencies)
@@ -29,15 +40,6 @@ If you want to run the latest version (i.e. later than the version available via
 Of course, you can just clone this, and manually point at the library itself,
 but we really recommend using [npm](http://github.com/isaacs/npm)!
 
-Note that as of version 0.3.8, node-irc supports character set detection using
-[icu](http://site.icu-project.org/). You'll need to install libiconv (if
-necessary; Linux systems tend to ship this in their glibc) and libicu (and its
-headers, if necessary, [install instructions](https://github.com/mooz/node-icu-charset-detector#installing-icu)) in order to use this feature. If you do not have these
-libraries or their headers installed, you will receive errors when trying to
-build these dependencies. However, node-irc will still install (assuming
-nothing else failed) and you'll be able to use it, just not the character
-set features.
-
 ## Basic Usage
 
 This library provides basic IRC client functionality. In the simplest case you
@@ -47,6 +49,7 @@ can connect to an IRC server like so:
 var irc = require('irc');
 var client = new irc.Client('irc.yourserver.com', 'myNick', {
     channels: ['#channel'],
+    encoding: 'windows-1251'
 });
 ```
 
